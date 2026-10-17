@@ -11,4 +11,4 @@ phases:
       - sam build --template-file sam/template.yaml
   post_build:
     commands:
-      - sam deploy --stack-name web-committed-sam-stack --resolve-s3 --capabilities CAPABILITY_IAM --no-confirm-changeset
+      - sam deploy --stack-name manual-sam-stack --resolve-s3 --capabilities CAPABILITY_IAM --no-confirm-changeset

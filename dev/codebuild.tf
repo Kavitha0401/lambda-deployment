@@ -12,20 +12,23 @@ provider "aws" {
   region = "ap-southeast-2" 
 }
 
+# 1. Fetch your clean secret string from Secrets Manager
 data "aws_secretsmanager_secret" "github" {
-  name = "github-token"
+  name = "token"
 }
 
 data "aws_secretsmanager_secret_version" "github_token_val" {
   secret_id = data.aws_secretsmanager_secret.github.id
 }
 
+# 2. Register the credential globally to your AWS CodeBuild account scope
 resource "aws_codebuild_source_credential" "github_auth" {
   auth_type   = "PERSONAL_ACCESS_TOKEN"
   server_type = "GITHUB"
   token       = data.aws_secretsmanager_secret_version.github_token_val.secret_string
 }
 
+# 3. Create the Execution IAM Role
 resource "aws_iam_role" "cb_execution_role" {
   name = "manual-sam-codebuild-role"
 
@@ -46,6 +49,7 @@ resource "aws_iam_role_policy_attachment" "cb_admin_access" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
+# 4. Provision the CodeBuild Project Project (Cleaned Source Context)
 resource "aws_codebuild_project" "sam_pipeline" {
   name          = "manual-sam-builder"
   service_role  = aws_iam_role.cb_execution_role.arn
@@ -64,7 +68,7 @@ resource "aws_codebuild_project" "sam_pipeline" {
 
   source {
     type            = "GITHUB"
-    location        = "https://github.com/Kavitha0401/lambda-deployment.git" 
+    location        = "https://github.com/Kavitha0401/lambda-deployment.git"
     buildspec       = "dev/buildspec.yml"
     git_clone_depth = 1
   }

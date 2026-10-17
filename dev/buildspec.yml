@@ -11,4 +11,5 @@ phases:
       - sam build --template-file sam/template.yaml
   post_build:
     commands:
-      - sam deploy --stack-name manual-sam-stack --resolve-s3 --capabilities CAPABILITY_IAM --no-confirm-changeset
+      # Automatically provisions your API Gateway & Lambda function without requiring S3 bucket management
+      - sam deploy --stack-name automated-sam-web-stack --resolve-s3 --capabilities CAPABILITY_IAM --no-confirm-changeset

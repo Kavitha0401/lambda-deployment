@@ -7,6 +7,6 @@ def lambda_handler(event, context):
             "Content-Type": "application/json"
         },
         "body": json.dumps({
-            "message": "Hello from code committed directly on GitHub web browser!"
+            "message": "Hello from a completely manual serverless deployment!"
         }),
     }

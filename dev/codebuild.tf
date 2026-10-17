@@ -1,3 +1,4 @@
+cat << 'EOF' > codebuild.tf
 terraform {
   required_providers {
     aws = {
@@ -8,10 +9,9 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1" # Change this to your preferred AWS region
+  region = "ap-southeast-2" 
 }
 
-# 1. Fetch your GitHub Token from AWS Secrets Manager
 data "aws_secretsmanager_secret" "github" {
   name = "github-token"
 }
@@ -20,14 +20,12 @@ data "aws_secretsmanager_secret_version" "github_token_val" {
   secret_id = data.aws_secretsmanager_secret.github.id
 }
 
-# 2. Authenticate AWS with GitHub globally
 resource "aws_codebuild_source_credential" "github_auth" {
   auth_type   = "PERSONAL_ACCESS_TOKEN"
   server_type = "GITHUB"
   token       = data.aws_secretsmanager_secret_version.github_token_val.secret_string
 }
 
-# 3. Create the Serverless Execution IAM Role for CodeBuild
 resource "aws_iam_role" "cb_execution_role" {
   name = "manual-sam-codebuild-role"
 
@@ -43,13 +41,11 @@ resource "aws_iam_role" "cb_execution_role" {
   })
 }
 
-# Grants admin rights so SAM can freely provision Lambda and API Gateway
 resource "aws_iam_role_policy_attachment" "cb_admin_access" {
   role       = aws_iam_role.cb_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-# 4. Provision the AWS CodeBuild Engine (No Webhook Attached)
 resource "aws_codebuild_project" "sam_pipeline" {
   name          = "manual-sam-builder"
   service_role  = aws_iam_role.cb_execution_role.arn
@@ -63,13 +59,14 @@ resource "aws_codebuild_project" "sam_pipeline" {
     compute_type                = "BUILD_GENERAL1_SMALL"
     image                       = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
     type                        = "LINUX_CONTAINER"
-    privileged_mode             = true # Required for SAM build features
+    privileged_mode             = true 
   }
 
   source {
     type            = "GITHUB"
-    location        = "https://github.com" # ⚠️ REPLACE THIS
+    location        = "https://github.com/Kavitha0401/lambda-deployment.git" 
     buildspec       = "dev/buildspec.yml"
     git_clone_depth = 1
   }
 }
+EOF
